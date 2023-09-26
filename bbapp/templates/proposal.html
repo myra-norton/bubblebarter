@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Barter in the Bubble</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js"
+    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+  <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.5/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script> -->
+
+  <script> var csrf_token = '{{ csrf_token }}'; </script>
+</head>
+
+<body>
+  <!-- begin header -->
+  <div id="site-container" class="container-fluid">
+    <div id="header" class="container-fluid" style="margin-bottom:40px;">
+      <div class="row">
+        <div class="col-md-3 d-flex align-items-center justify-content-start">
+          <a class="btn btn-default" href="/">
+            <img src="{% static 'bbapp/img/barter.png' %}" width="75%" height="75%">
+          </a>
+        </div>
+        <div class="col-md-9 d-flex align-items-center justify-content-end">
+          <a class="btn btn-default" href="/postitem">Post Item</a>
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              Account
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="/login">Login</a>
+              <a class="dropdown-item" href="/logout">Logout</a>
+              <a class="dropdown-item" href="/accountstatus">Login Status</a>
+              <a class="dropdown-item" href="/account">View Account</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+    </div> <!-- close header container -->
+
+    <div class="container-fluid full-height">
+      <div class="mx-5 my-5">
+        <br>
+        Item Proposed To: {{itemowned.title}}
+        <br>
+        {% if ownedhas_image %}
+        <img src="{{owned_image_url}}" width="200" height="200">
+        {% endif %}
+        <br>
+        Owner: {{itemowned.owner}}
+        <br>
+        Proposed Item: {{itemproposed.title}}
+        <br>
+        {% if proposedhas_image %}
+        <img src="{{proposed_image_url}}" width="200" height="200">
+        {% endif %}
+        <br>
+        Proposer: {{proposal.proposer}}
+        <br>
+        Message: {{proposal.proposaltext}}
+        <br>
+        {% if proposal.proposer == user.username %}
+        <form method="post" action="{% url 'rescind_proposal' proposal.proposalid %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger rescind-proposal-btn" id="rescind-proposal-btn">Rescind
+            Proposal</button>
+        </form>
+        {% endif %}
+        {% if proposal.proposedto == user.username %}
+        Would you like to accept this proposal?
+        <!--<a id="acceptButton" type="button" class="btn btn-success btn-lg btn-default"
+          href="{% url 'swapsuccessful' %}?proposalid={{proposal.proposalid}}">Accept</a> -->
+
+          <form method="post" id="accept-proposal-form"
+                action="{% url 'proposalacceptance' proposal.proposalid%}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success accept-proposal-btn mr-2"
+                  id="accept-button">Accept Proposal</button>
+              </form>
+
+        <a id="rejectbutton" type="button" class="btn btn-danger btn-lg btn-default"
+          href="{% url 'swaprejected' %}?proposalid={{proposal.proposalid}}">Reject</a>
+        {% endif %}
+        <a type="button" class="btn btn-outline-secondary"
+          href="report?reporteduser={{proposal.proposer}}&reportedproposalid={{proposal.proposalid}}">Report item</a>
+        <br>
+        <a type="button" class="btn btn-lg btn-primary" href="/account">View Account</a>
+      </div>
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+  $('#accept-button').click(function () {
+    const confirmed = confirm('Are you sure you want to accept this proposal?');
+    if (!confirmed) {
+      event.preventDefault();
+      return;
+    };
+  });
+
+  $('#acceptButton').click(function () {
+    const confirmed = confirm('Are you sure you want to accept this proposal?');
+    if (!confirmed) {
+      event.preventDefault();
+      return;
+    };
+
+    event.preventDefault();
+    const proposalid = "{{ proposal.proposalid }}";
+    console.log("proposalid: ", proposalid)
+    $.ajax({
+      type: "POST",
+      headers: { 'X-CSRFToken': csrf_token },
+      url: 'proposalacceptance/',
+      data: { param1: proposalid },
+      success: function (response) {
+        console.log("POST request successful!", response);
+        var redirect_url = "{% url 'swapsuccessful' %}?proposalid=" + proposalid
+        window.location.href = redirect_url;
+      },
+      error: function (error) {
+        console.error("Error making POST request:", error);
+      }
+    });
+  });
+
+  $('#rejectbutton').click(function () {
+    const confirmed = confirm('Are you sure you want to reject this proposal?');
+    if (!confirmed) {
+      event.preventDefault();
+      return;
+    };
+    event.preventDefault();
+    const proposalid = "{{ proposal.proposalid }}";
+    console.log("proposalid: ", proposalid)
+    $.ajax({
+      type: "POST",
+      headers: { 'X-CSRFToken': csrf_token },
+      url: 'proposalrejection/',
+      data: { param1: proposalid },
+      success: function (response) {
+        console.log("POST request successful!", response);
+        var redirect_url = "{% url 'swaprejected' %}?proposalid=" + proposalid
+        window.location.href = redirect_url;
+      },
+      error: function (error) {
+        console.error("Error making POST request:", error);
+      }
+    });
+  });
+
+
+</script>
+
+</html>

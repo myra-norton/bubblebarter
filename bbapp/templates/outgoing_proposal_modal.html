@@ -1,0 +1,128 @@
+{%for proposal_data in outgoing_proposals %}
+<!-- Modal -->
+<div class="modal fade" style="max-width: 88%; margin: 0 auto;position: absolute; left: 7%;"
+  id="outgoingModal-{{proposal_data.proposal.proposalid}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" style="max-width: 88%;" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Outgoing Proposal</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4">
+            <h5>You're offering:</h5>
+            <div class="card mb-4 shadow" style="border-radius: 10px; cursor: pointer; background-color: moccasin;">
+              {% if proposal_data.owned_item.image_url %}
+              <img class="card-img-top" src="{{proposal_data.owned_item.image_url}}" alt="Card image cap"
+                style="margin-top:10px;">
+              <div class="card-body">
+                <h4 class="card-title text-center"><b>{{proposal_data.owned_item.title}}</b></h4>
+                <hr>
+                <p class="card-text">
+                  <b>description: </b>{{proposal_data.owned_item.description}}<br>
+                  <b>wants: </b>{{proposal_data.owned_item.wants}}<br>
+                </p>
+              </div>
+              {% else %}
+              <div class="card-body">
+                <h3 class="card-title text-center"><b>{{proposal_data.owned_item.title}}</b></h3>
+                <hr>
+                <p class="card-text">
+                  <b>description: </b>{{proposal_data.owned_item.description}}<br>
+                  <b>wants: </b>{{proposal_data.owned_item.wants}}<br>
+                </p>
+              </div>
+              {% endif %}
+            </div> <!-- close card -->
+          </div> <!-- close col -->
+          <div class="col-md-4">
+            <h5>in exchange for:</h5>
+            <div class="card mb-4 shadow" style="border-radius: 10px; cursor: pointer; background-color: moccasin;">
+              {% if proposal_data.trade_item.image_url %}
+              <img class="card-img-top" src="{{proposal_data.trade_item.image_url}}" alt="Card image cap"
+                style="margin-top:10px;">
+              <div class="card-body">
+                <h4 class="card-title text-center"><b>{{proposal_data.trade_item.title}}</b></h4>
+                <hr>
+                <p class="card-text">
+                  <b>description: </b>{{proposal_data.trade_item.description}}<br>
+                  <b>wants: </b>{{proposal_data.trade_item.wants}}<br>
+                </p>
+              </div>
+              {% else %}
+              <div class="card-body">
+                <h3 class="card-title text-center"><b>{{proposal_data.trade_item.title}}</b></h3>
+                <hr>
+                <p class="card-text">
+                  <b>description: </b>{{proposal_data.trade_item.description}}<br>
+                  <b>wants: </b>{{proposal_data.trade_item.wants}}<br>
+                </p>
+              </div>
+              {% endif %}
+            </div> <!-- close card -->
+          </div> <!-- close col -->
+          <div class="col-md-4">
+            <form method="post" action="{% url 'rescind_proposal' proposal_data.proposal.proposalid %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-warning rescind-proposal-btn w-100" id="rescind-proposal-btn">Rescind
+                Proposal</button>
+            </form><br>
+            <!-- <button class="btn btn-danger w-100"
+              href="{% url 'swaprejected' %}?proposalid={{proposal.proposalid}}">Report Item</button><br><br> -->
+            <!-- <button type="button" class="btn btn-danger w-100" data-dismiss="modal" data-toggle="modal" -->
+            <!-- data-target="#report-item-modal-{{result.itemid}}">Report Item</button><br><br> -->
+            <button class="btn btn-outline-secondary w-100" data-dismiss="modal">Back to Account</button>
+          </div>
+        </div><!-- close row -->
+      </div>
+      <!-- this is the report item modal -->
+      <!-- <div class="modal fade" id="report-item-modal-{{ proposal_data.proposal.proposalid }}" tabindex="-1" role="dialog"
+        aria-labelledby="report-item-modal-{{ proposal_data.proposal.proposalid }}-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content" style="background-color: moccasin;">
+            <div class="modal-header">
+              <h5 class="modal-title" id="report-item-modal-{{ proposal_data.proposal.proposalid }}-label">Report Item
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div>
+              <div class="modal-body">
+                <form id="report-item-form-{{proposal_data.proposal.proposalid}}" method="post"
+                  action="{% url 'report' proposal_data.proposal.proposalid %}" enctype="multipart/form-data">
+
+                  {% csrf_token %}
+                  <input id="reporteduser" name="reporteduser" value="{{proposal_data.proposal.owner}}" readonly
+                    style="display: none;">
+                  <input id="reportedproposalid" name="reporteditemid" value="{{proposal_data.proposal.proposalid}}"
+                    readonly style="display: none;">
+                  <label for="reportedproposalid">Optional proposal id</label>
+                  <input type="text" id="reportedproposalid" name="reportedproposalid"
+                    value="{{reportedproposalid}}"><br>
+                  <label for="reporttext">Please describe your report:</label><br>
+                  <textarea class="form-control" id="reporttext" name="reporttext"></textarea><br>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+                <button type="submit" form="report-item-form-{{proposal_data.proposal.proposalid}}"
+                  class="btn btn-primary">Submit</button>
+              </div>
+            </div> -->
+      <!-- </div>
+  </div>
+</div> -->
+
+      <!-- <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div> -->
+    </div>
+  </div>
+</div>
+{% endfor %}

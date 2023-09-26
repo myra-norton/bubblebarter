@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help - Barter in the Bubble</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css">
+  <style>
+    /* custom CSS for numbered lists */
+    ol.custom {
+      list-style-type: none;
+      counter-reset: custom-counter;
+    }
+    ol.custom li {
+      position: relative;
+    }
+    ol.custom li::before {
+      content: counter(custom-counter);
+      counter-increment: custom-counter;
+      font-size: 2rem;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    ol.custom li::after {
+        content: attr(title);
+      font-size: 1.25rem;
+      position: absolute;
+      left: 3rem;
+      top: 0.6rem;
+      font-weight: bold;
+    }
+    ol.custom li p {
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+    /* additional CSS for mobile devices */
+    @media (max-width: 576px) {
+      ol.custom li::after {
+        position: static;
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 1rem;
+      }
+      ol.custom li p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+{% include 'header-account.html' %}
+<body>
+
+  <div class="container my-5">
+
+    <h1>Welcome to Barter in the Bubble!</h1>
+
+    <p>This is a platform for Princeton students to trade items and services with one another! You can post items you want to trade 
+    and browse items that other students have posted. You can also propose trades with other students.</p>
+    <p>If you have any issues with the site or suggestions on how to make it better, please contact us using the "Contact Us" button at the top of this page.</p>
+
+    <h2>Getting Started</h2>
+    <ol class="custom">
+      <li title="Fill out your contact information on your account page.">
+        <p> Before you can post an item, you must fill out your contact information on your <a href="/account">account page</a>. This will allow us to contact you about trades and proposals. You can update your preferred email at any time.</p>
+        </li>
+      <li title="Post an item you want to trade">
+        <p>Before you can propose a trade, you must <a href="/postitem">post an item</a>
+            to the site. These items can be edited or deleted later from the search or account pages.</p>
+      </li>
+      <li title="Browse items that other students have posted">
+        <p>Explore our  <a href="/">home page</a> to see what other students have posted. Click on the items to view more details about the items, report the items, or make a proposal.</p>
+      </li>
+      <li title="Propose a trade with another student">
+        <p>Once you've found an item you want to propose to, click on the item and make a proposal. Select the item you want to trade, and add a message about your proposal.</p>
+      </li>
+      <li title="Manage your proposals">
+        <p>You can manage your proposals on your <a href="/account">account page</a> under the proposals tab. Click on the proposal you wish to inspect to see the proposal details. You can accept, reject, or rescind a proposal at any time.</p>
+      </li>
+    </ol>
+
+    <h2>Rules</h2>
+
+    <ol class="custom">
+      <li title="No Money!!!">
+        This platform is for trading only, not for buying or selling. However, we encourage students to make creative trades using anything besides USD!</li>
+      <li title = "No illegal items or services">Any items that violate the law or Princeton University policy will be removed.</li>
+      <li title = "Be Respectful">Please be respectful of other students so everyone can enjoy their time on the site!</li>
+    </ol>
+    <p>Any violations of these rules may result in your account, items, and proposals being suspended.</p>
+    <p>If you see any users violating these rules, please report the item or proposal.</p>
+   
+  
+      
+    <!--Close main container -->
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/js/bootstrap.min.js"></script>
+
+
+
+
+
+
+
+
+   <!-- Start report modal-->
+   <div class="modal fade" id="contactModal" tabindex="-1" role="dialog"
+   aria-labelledby="contactModal-label" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+     <div class="modal-content" style="background-color: moccasin;">
+       <div class="modal-header">
+         <h5 class="modal-title" id="contactModal-label">Contact Us
+         </h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div>
+         <div class="modal-body">
+           <form id="contactForm" method="post"
+             action="{% url 'report' %}" enctype="multipart/form-data">
+ 
+             {% csrf_token %}
+             <input id="reporteduser" name="reporteduser" value="luke" readonly
+               style="display: none;">
+             <input id="reporteditemid" name="reporteditemid" value="General Contact Report" readonly
+               style="display: none;">
+             <label for="reporttext">Please describe your issue or question:</label><br>
+             <textarea class="form-control" id="reporttext" name="reporttext"></textarea><br>
+           </form>
+         </div>
+         <div class="modal-footer">
+           <button type="button" id = "close-contact" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+           <button type="submit" form="contactForm" id = "submitContact"
+             class="btn btn-primary">Submit</button>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+ <script>
+   $(document).ready(function () {
+   // Get the modal and the Contact button
+   const contactModal = document.getElementById("contactModal");
+   console.log(contactModal);
+   const contactButton = document.getElementById("contact-btn");
+   console.log('button');
+   console.log(contactButton);
+ 
+   // When the Contact button is clicked, open the modal
+   contactButton.onclick = function(event) {
+     event.preventDefault();
+     console.log('here');
+     console.log(contactButton);
+     console.log(contactModal);
+     $('#contactModal').addClass('show').modal('show');
+
+     contactModal.style.display = "block";
+   }
+   var closeButton = document.querySelector('#contactModal .close');
+  closeButton.addEventListener('click', function() {
+    $('#contactModal').modal('hide');
+  });
+ 
+   // Get the close button element
+   var closeButton = document.getElementById("close-contact");
+ 
+   // When the close button is clicked, close the modal
+   closeButton.onclick = function() {
+     //contactModal.style.display = "none";
+     //contatcModal.hide();
+     $('#contactModal').modal('hide');
+   }
+ 
+   // When the user clicks anywhere outside of the modal, close it
+   window.onclick = function(event) {
+     if (event.target == contactModal) {
+       contactModal.style.display = "none";
+     }
+   }
+
+   document.getElementById("submitContact").addEventListener("click", function() {
+    event.preventDefault();
+    let formData = new FormData($("#contactForm")[0]);
+    $.ajax({
+    url: "/inspectitem/report/itemreported",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(response) {
+      // Handle the success response
+      console.log("Form submitted successfully:", response);
+      // Close the modal or perform other actions based on the response
+      $("#contactModal").hide();
+
+
+      sentModal = `<div class="modal fade" id="sentModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Message sent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your message has been sent</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          $('body').append(sentModal);
+        //$('#contactModal').modal('hide');
+        $('#sentModal').addClass('show').modal('show');
+        $('#sentModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  location.reload();
+}, 2000);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors
+      console.log("Error submitting the form:", textStatus, errorThrown);
+    },
+  });
+   
+    
+  });});
+ </script>
+ <!-- End report modal-->
+ <script>
+  const searchBar = document.querySelector('#search-bar');
+  searchBar.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      // Do something when enter key is pressed
+      console.log('User pressed enter on the search bar!');
+      $('#search').click();
+    }
+  });
+</script>
+
+</body>
+</html>

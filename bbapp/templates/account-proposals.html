@@ -1,0 +1,347 @@
+<style>
+  .custom-list-item {
+    width: 100%;
+    /* Set the desired width, e.g., 100%, 300px, 50vw, etc. */
+  }
+</style>
+<style>
+  .custom-card {
+    width: 85%;
+    /* Set the desired width, e.g., 600px, 80%, 40vw, etc. */
+    height: auto;
+    /* Set the desired height, e.g., auto, 400px, 60%, 30vh, etc. */
+  }
+</style>
+
+<div id="proposal-container" class="container-fluid">
+  <div class="row">
+    <h2>Account Activity</h2>
+  </div>
+  <br>
+  <div class="row">
+    <div class="card mb-4 custom-card" style="border-radius: 10px; background-color: moccasin;">
+      <h4 class="card-header"  style="max-height: 65vh; overflow-y: auto;">
+        Incoming Proposals
+      </h4>
+      <div class="card-body">
+        {% if incoming_proposals|length > 0 %}
+        <ul class="list-group">
+          {% for proposal_data in incoming_proposals %}
+          <li class="list-group-item custom-list-item">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1"><a href="#" data-toggle="modal" data-target="#incomingModal-{{proposal_data.proposal.proposalid}}">{{proposal_data.proposal.proposer}} proposed <q>{{proposal_data.trade_item.title}}</q> for <q>{{proposal_data.owned_item.title}}</q></a></h5>
+              <small>Sent on {{proposal_data.proposal.dateoffered}}</small>
+            </div>
+            <p class="mb-1">Proposal Status: {{proposal_data.proposal.status}}
+              <br> Proposal Message: {{proposal_data.proposal.proposaltext}}
+            </p>
+            <div class="d-flex">
+              <form method="post" id="accept-proposal-form-{{ proposal.proposalid }}" action="{% url 'proposalacceptance' proposal_data.proposal.proposalid%}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success accept-proposal-btn mr-2" id="accept-proposal-btn-{{ proposal.proposalid }}">Accept Proposal</button>
+              </form>
+              <form method="post" action="{% url 'swaprejected' %}?proposalid={{proposal.proposalid}}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning reject-proposal-acc-btn ml-2" id="reject-proposal-acc-btn-{{ proposal_data.proposal.proposalid }}">Reject Proposal</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-center"><strong>You have no incoming proposals.</strong></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% include 'incoming_proposal_modal.html' %}
+
+  <div class="row">
+    <div class="card mb-4 custom-card" style="border-radius: 10px; background-color: moccasin;">
+      <h4 class="card-header">
+        Outgoing Proposals
+      </h4>
+      <div class="card-body"  style="max-height: 30vh; overflow-y: auto;">
+        {% if outgoing_proposals|length > 0 %}
+        <ul class="list-group">
+          {%for proposal_data in outgoing_proposals %}
+          <li class="list-group-item custom-list-item">
+         
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1"><a data-toggle="modal" href="#outgoingModal-{{proposal_data.proposal.proposalid}}">You proposed <q>{{proposal_data.owned_item.title}}</q> for
+                <q>{{proposal_data.trade_item.title}}</q></a></h5>
+              <small>Sent on {{proposal_data.proposal.dateoffered}}</small>
+            </div>
+            <p class="mb-1">This proposal is still pending.
+              <br> Proposal Message: {{proposal_data.proposal.proposaltext}}
+            </p>
+            <form method="post" action="{% url 'rescind_proposal' proposal_data.proposal.proposalid %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-warning rescind-proposal-btn" id="rescind-proposal-btn">Rescind
+                Proposal</button>
+            </form>
+       
+        </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-center"><strong>You have no outgoing proposals.</strong></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% include 'outgoing_proposal_modal.html' %}
+
+  <script>
+    const rescindBtns = document.querySelectorAll('.rescind-proposal-btn');
+
+    rescindBtns.forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        const confirmResult = confirm('Are you sure you want to rescind this proposal?');
+        if (confirmResult) {
+
+          btn.closest('form').submit();
+        }
+      });
+    });
+  </script>
+  <script>
+    const rejectBtns = document.querySelectorAll('.reject-proposal-btn');
+    const rejectBtnsHome = document.querySelectorAll('.reject-proposal-acc-btn');
+    console.log('home');
+    console.log(rejectBtnsHome);
+
+    rejectBtns.forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        const proposalId = btn.id.replace('reject-proposal-btn-', '');
+        const confirmResult = confirm('Are you sure you want to reject this proposal?');
+        if (confirmResult) {
+          $.ajax({
+            type: "POST",
+            headers: { 'X-CSRFToken': csrf_token },
+            url: `proposal/proposalrejection/`,
+            data: {
+              param1: proposalId,
+            },
+            success: function (response) {
+              var redirect_url = "{% url 'account' %}"
+              window.location.href = redirect_url;
+            },
+            error: function (error) {
+              console.error("Error making POST request:", error);
+            }
+          });
+        }
+      });
+    });
+
+   
+    rejectBtnsHome.forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        const confirmResult = confirm('Are you sure you want to reject this proposal?');
+        if (confirmResult) {
+          const proposalId = btn.id.replace('reject-proposal-acc-btn-', '');
+          console.log(proposalId);
+          console.log(btn.id)
+          $.ajax({
+            type: "POST",
+            headers: { 'X-CSRFToken': csrf_token },
+            url: `proposal/proposalrejection/`,
+            data: {
+              param1: proposalId,
+            },
+            success: function (response) {
+              console.log("POST request successful!", response);
+              var redirect_url = "{% url 'account' %}"
+              window.location.href = redirect_url;
+            },
+            error: function (error) {
+              console.error("Error making POST request:", error);
+            }
+          });
+        }
+      });
+      });
+  </script>
+  <script>
+    const acceptBtns = document.querySelectorAll('.accept-proposal-btn');
+
+    acceptBtns.forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        const confirmResult = confirm('Are you sure you want to accept this proposal?\nThis will automatically reject all other incoming and outgoing proposals for this item.');
+        if (confirmResult) {
+          const proposalId = btn.id.replace('accept-proposal-btn-', '');
+          document.querySelector(`#accept-proposal-form-${proposalId}`).submit();
+          //btn.closest('form').submit();
+        }
+      })
+    });
+
+    const acceptForms = document.querySelectorAll('.accept-proposal-form');
+
+    acceptForms.forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        debug()
+        console.log('event happened')
+        event.preventDefault();
+        alert('Congratulations! You have accepted the proposal!');
+        form.submit();
+      });
+    });
+
+
+
+    $(function () {
+      console.log("Page loaded!"); // log message to console
+      $('#accept-proposal-form').submit(function (event) {
+        console.log('event happened')
+        event.preventDefault(); // prevent the default form submission
+        // pause the code execution
+        var form = $(this); // reference to the form element
+        var url = form.attr('action'); // the URL to submit the form data to
+        var data = form.serialize(); // serialize the form data into a URL-encoded string
+
+        $.ajax({
+          type: 'POST',
+          url: url,
+          data: data,
+          dataType: 'json',
+          success: function (response) {
+            if (response.success) {
+
+              // Create a custom popup with the success message and buttons
+              var successModalHtml = `
+      <div class="modal" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="successModalLabel">Proposal Sent Successfully</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Your proposal has been submitted successfully.</p>
+            </div>
+            <div class="modal-footer">
+              <a href="/" class="btn btn-primary">Return to Home Page</a>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Return to Current Item</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+              // Add the new modal to the body element
+              $('body').append(successModalHtml);
+              $('#propose-item-modal').modal('hide');
+              $('.modal-backdrop').remove();
+
+              // Show the new modal
+              $('#successModal').modal('show');
+
+
+            } else {
+              // if the server returns an error response, display the form errors
+              $('.modal-body').html(form); // replace the form with the error messages
+            }
+          },
+          error: function (xhr, status, error) {
+            // handle error response from server (e.g. display an error message)
+            console.log(error);
+          }
+        });
+      });
+    });
+  </script>
+
+
+  <!-- script to handle the report button modal -->
+  <script>
+    console.log('REPORTS')
+    const reportForms = document.querySelectorAll('[id^="report-item-form-"]');
+
+    console.log(reportForms)
+
+    reportForms.forEach(form => {
+      //console.log(form);
+      const currentForm = form;
+      let csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const itemId = currentForm.id.split('form-').pop();
+        console.log(itemId);
+        console.log(currentForm.id);
+        let formData = new FormData($("#report-item-form-"+itemId)[0]);
+        console.log(formData);
+
+
+        $.ajax({
+    url: "/inspectitem/report/itemreported",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    beforeSend: function(xhr) {
+      // Set the X-CSRFToken header
+      xhr.setRequestHeader("X-CSRFToken", csrfToken);
+    },
+    success: function(response) {
+      // Handle the success response
+      console.log("Form submitted successfully:", response);
+      // Close the modal or perform other actions based on the response
+      //$("#contactModal").hide();
+
+
+      sentModal = `<div class="modal fade" id="sentModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Message sent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your report has been sent. Reloading page.</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          $('body').append(sentModal);
+        $('#report-item-modal-'+itemId).modal('hide');
+        $('#sentModal').addClass('show').modal('show');
+        console.log('here')
+        $('#sentModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  console.log('Reloading page...');
+  location.reload();
+}, 2000);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors
+      console.log("Error submitting the form:", textStatus, errorThrown);
+    },
+  });
+        console.log('REPORT SUBMITTED')
+
+    
+        console.log(itemId);
+
+        // var url = form.attr('report'); // the URL to submit the form data to
+        // var data = form.serialize(); // serialize the form data into a URL-encoded string
+      });
+    });
+  </script>
+</div>

@@ -1,0 +1,205 @@
+
+
+<!-- this is the edit item modal for results belonging to the user -->
+<div class="modal fade" id="edit-item-modal-{{ result.itemid }}" tabindex="-1" role="dialog"
+    aria-labelledby="edit-item-modal-{{ result.itemid }}-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: moccasin;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-item-title-{{ result.itemid }}-label">Edit Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-item-form-{{result.itemid}}" method="post" action="{% url 'edit_item' result.itemid %}"
+                    enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="origin" value="account">
+                    <div class="form-group mb-3">
+                        <label for="item-title-{{result.itemid}}" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="item-title-{{result.itemid}}" name="name"
+                            value="{{ result.title }}">
+                        <small class="text-danger d-none" id="title-error">This field is required.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description-{{result.itemid}}" class="form-label">Description</label>
+                        <textarea class="form-control" id="item-description-{{result.itemid}}"
+                            name="description">{{ result.description }}</textarea>
+                        <small class="text-danger d-none" id="description-error">This field is required.</small>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="item-wants">Wants</label>
+                        <textarea class="form-control" id="item-wants" name="wants">{{ result.wants }}</textarea>
+                        <small class="text-danger d-none" id="description-error">This field is required.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description-{{result.itemid}}">Change Image</label>
+                        <input type="file" id="myPhoto-{{result.itemid}}" name="myPhoto" accept="image/png, image/gif, image/jpeg">
+                    </div>
+                    <div class="form-group">
+                        <a type="button" id="remove-button-{{result.itemid}}" onclick="removeImage('myPhoto-{{result.itemid}}', 'remove-button-{{result.itemid}}')" 
+                        class="btn btn-link" style="display: none;">Remove New Image</a>
+                        </div>
+                    <div class="form-group">
+                        <label for="item-categories">Categories</label><br>
+                        <div class="row">
+                            {% for category in categories %}
+                            <div class="col-4">
+                                {% if category in result.get_active_tags %}
+                                <input type="checkbox" name="edit-{{ category }}" checked autocomplete="off">
+                                <label>{{category}}</label><br>
+                                {% else %}
+                                <input type="checkbox" name="edit-{{ category }}" autocomplete="off">
+                                <label>{{category}}</label><br>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+                <button type="button" id="delete-item" class="btn btn-danger"
+                    onclick="deleteCur('{{result.itemid}}')">Delete Item</button>
+                <button type="submit" form="edit-item-form-{{result.itemid}}" class="btn btn-primary">Save
+                    changes</button>
+            </div>
+            <!-- Script to add remove image button -->
+            <script>
+                function removeImage(inputId, buttonId) {
+                  // get the input element and reset its value
+                  console.log(inputId);
+                  console.log(buttonId);
+                  var input = document.getElementById(inputId);
+  input.value = null; // clear the files using the FileList object
+  input.type = "text"; // change the input type to text
+  input.type = "file"; // change the input type back to file
+                  // hide the image and the remove button
+                  document.getElementById(buttonId).style.display = "none";
+                }
+            
+                // show the uploaded image and the remove button
+                document.getElementById("myPhoto-{{result.itemid}}").addEventListener("change", function(event) {
+                    console.log('photo changed')
+                  // get the item ID from the input field's ID
+                  var itemId = event.target.id.split("myPhoto-")[1];
+            
+                  var previewId = "myPhoto-" + itemId + "-preview";
+                  var buttonId = "remove-button-" + itemId;
+                  console.log(buttonId)
+            
+                  document.getElementById(buttonId).style.display = "inline-block";
+                });
+              </script>
+
+<!-- Script to reset values -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Bootstrap JavaScript Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function() {
+      // Get the edit item modal for this item
+      var modal = $('#edit-item-modal-{{ result.itemid }}');
+      console.log(modal);
+      modal.on('shown.bs.modal', function () {
+  console.log('modal opened');
+});
+$(document).on('shown.bs.modal', '#edit-item-modal-{{ result.itemid }}', function () {
+  console.log('modal opened');
+});
+
+      
+   
+      modal.on('hidden.bs.modal', function () {
+        console.log('modal closed');
+      // Reset the description and wants fields
+      var titleField = modal.find('[id^="item-title"]');
+      var descriptionField = modal.find('[id^="item-description-"]');
+      var wantsField = modal.find('[id^="item-wants"]');
+      titleField.val('{{ result.title }}');
+    descriptionField.val('{{ result.description }}');
+        wantsField.val('{{ result.wants }}');
+        
+      
+      // Reset the photo field and preview image
+      var photoInput = modal.find('[id^="myPhoto-"]');
+      photoInput.val(null);
+      var removeButton = modal.find('[id^="remove-button-"]');
+        removeButton.hide();
+
+        // Reset the tags
+        
+    });
+    });
+    
+    </script>
+        </div>
+    </div>
+</div>
+<!-- this is the inspect item modal for each result -->
+<div class="modal fade" id="cardModal{{ result.itemid }}" tabindex="-1" role="dialog"
+  aria-labelledby="cardModalLabel{{ result.itemid }}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: moccasin;">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="background-color: moccasin;">
+        {% if not result.isactive %}
+          <h4 class="card-text text-muted"><strong>This item is no longer active.</strong></h4>
+          {% endif %}
+        {% if result.image_url %}
+        <img src="{{result.image_url}}" class="img-fluid"><br><br>
+        {% endif %}
+        <h3 class = "word-wrap" style="text-align: center;">{{result.title}}</h3>
+        <hr style="border-top: 3px solid black; width: 50%;">
+        <h5>Description: <span class = "word-wrap" style="font-weight:normal; font-size: 0.8em;">{{result.description}}</span></h5>
+        <h5>Wants: <span class = "word-wrap" style="font-weight:normal; font-size: 0.8em;">{{result.wants}}</span></h5>
+        <p><b>Posted</b> {{result.dateposted}}<br><b>Expires</b> {{result.dateexpires}}</p>
+        <h5 style="display:inline">Tags: </h5>&nbsp;
+        {% for tag in result.get_active_tags %}
+        <a class="rounded-pill" style="border: 1px solid black;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline;">{{ tag }}</a>
+        {% endfor %}
+      </div>
+      <div class="modal-footer" style="background-color: moccasin;">
+        <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+        {% if user.username == result.owner and result.isactive %}
+        <!-- create edit item button -->
+        <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal"
+          data-target="#edit-item-modal-{{ result.itemid }}">Edit Item</button>
+
+ 
+
+ <!-- Script to add remove image button -->
+
+
+        {% elif result.isactive %}
+        <!-- create proposal button -->
+        <button type="button" class="btn btn-danger" data-dismiss="modal" data-toggle="modal"
+          data-target="#report-item-modal-{{result.itemid}}">Report Item</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal"
+          data-target="#propose-item-modal-{{result.itemid}}">Make a
+          Proposal</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

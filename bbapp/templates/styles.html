@@ -1,0 +1,43 @@
+<style>
+    @media (min-width: 992px) {
+      #filterRow {
+        display: none !important;
+      }
+    }
+    .left-header-btns{
+      border-radius: 0;
+    }
+    .left-header-btns:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    .left-header-btns:hover {
+      border-bottom: 2px solid #000;
+    }
+    #indexcard.card:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+    .dropdown:hover>.dropdown-menu {
+      display: block;
+    }
+
+    .dropdown>.dropdown-toggle:active {
+      /*Without this, clicking will make it sticky*/
+        pointer-events: none;
+    }
+    .modal-backdrop
+{
+    opacity:0.5 !important;
+}
+.word-wrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+input[type=checkbox].special-button:hover {
+    background-color: transparent; /* or whatever background color you want to use */
+    color: #000; /* or whatever text color you want to use */
+    border-color: #ccc; /* or whatever border color you want to use */
+  }
+    </style>

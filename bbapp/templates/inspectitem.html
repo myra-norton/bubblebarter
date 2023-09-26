@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Barter in the Bubble</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js"
+    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    function toggleRow() {
+      var row = document.getElementById("filterRow");
+      if (row.style.display === "none") {
+        row.style.display = "flex";
+      } else {
+        row.style.display = "none";
+      }
+    }
+  </script>
+  <style>
+    @media (min-width: 992px) {
+      #filterRow {
+        display: none !important;
+      }
+    }
+    .left-header-btns{
+      border-radius: 0;
+    }
+    .left-header-btns:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    .left-header-btns:hover {
+      border-bottom: 2px solid #000;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+    .dropdown:hover>.dropdown-menu {
+      display: block;
+    }
+
+    .dropdown>.dropdown-toggle:active {
+      /*Without this, clicking will make it sticky*/
+        pointer-events: none;
+    }
+    </style>
+
+  <!-- <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.5/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script> -->
+
+  <script> var csrf_token = '{{ csrf_token }}'; </script>
+</head>
+
+<body>
+  <div id="site-container" class="container-fluid">
+    <div id="header" class="container-fluid" style="margin-bottom:40px; margin-top:15px;">
+      <div class="row">
+        <div class="col-md-4 col-lg-3 col-xl-2 d-flex align-items-center justify-content-lg-start justify-content-center">
+          <a class="btn btn-default" href="/">
+            <img src="{% static 'bbapp/img/barter.png' %}" width="200px" height="75px">
+          </a>
+        </div>
+        <div class="col-md-8 col-lg-3 col-xl-4 d-flex align-items-center justify-content-xl-start justify-content-lg-end justify-content-center">
+          <a class="btn btn-default left-header-btns" href="postitem"><h5>Post Item</h5></a>
+          <a class="btn btn-default left-header-btns" href="account"><h5>Proposals</h5></a>
+          <div class="d-block d-lg-none">
+            <div class="dropdown">
+              <button class="btn btn-default left-header-btns" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <h5>Hello, {{user.username}}!</h5>
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <!-- <a class="dropdown-item" href="/login">Login</a> -->
+                <a class="dropdown-item" href="/account">View Account</a>
+                <a class="dropdown-item" href="/logout">Logout</a>
+                <!-- <a class="dropdown-item" href="/accountstatus">Login Status</a> -->
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        <div class="col-lg-6 d-flex align-items-center justify-content-lg-end justify-content-center">
+          <div class="input-group rounded-pill" style="width:80%;">
+            <input type="text" id="search-bar" class="form-control rounded-pill" name="q" placeholder="Search..." value="{{prev_search}}" style="z-index: 1; box-shadow: none;">
+            <button id="search" class="btn btn-primary rounded-pill" type="button" style="margin-left:-30px; z-index: 2;background-color: black;border-color: black;">
+              Search
+            </button>
+          </div>
+          <div class="dropdown d-none d-lg-block">
+            <button class="btn btn-default left-header-btns" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false" style=" font-size: 1.1rem; font-weight: 600;">
+              Hello, {{user.username}}!
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <!-- <a class="dropdown-item" href="/login">Login</a> -->
+              <a class="dropdown-item" href="/account">View Account</a>
+              <a class="dropdown-item" href="/logout">Logout</a>
+              <!-- <a class="dropdown-item" href="/accountstatus">Login Status</a> -->
+            </div>
+          </div>
+        </div>
+      </div>      
+      <hr>
+    </div> <!-- close header container -->
+    <div id="main" class="container-fluid" style="width:85%;">
+      <div class="row">
+        {% if has_image %}
+        <div class="col-lg-6">
+          <a type="button" class="btn btn-outline-secondary" href="{{last_url}}">Back to Home</a><br><br>
+          <img src="{{ image_url }}" class="img-fluid mx-auto d-block"><br>
+          <!-- create proposal button for popup -->
+          {% if not is_owner %}
+          <!-- create button that triggers the proposal modal -->
+          <a type="button" class="btn btn-outline-secondary w-24"
+          href="report?reporteduser={{item.owner}}&reporteditemid={{item.itemid}}">Report item</a>
+          <button type="button" class="btn btn-primary float-right w-75" data-toggle="modal" data-target="#propose-item-modal">Make a
+            Proposal</button>
+          {% endif %}
+          {% if is_owner %}
+          <!-- create button that triggers the modal -->
+          <button type="button" class="btn btn-primary" data-toggle="modal"
+            data-target="#edit-item-modal-{{ item.itemid }}">Edit Item</button><br><br>
+          {% endif %}
+        </div>
+
+        {% endif %}
+        <div class="col-lg-6">
+            <h3>{{item.title}}</h3><hr><br>
+            <h3>Description: </h3>{{item.description}}<br>
+            <h3>Wants: </h3>{{item.wants}}<br>
+            <h3>Tags: </h3><br>
+            {% for tag in item.get_active_tags %}
+            <a class="btn-check-2-outlined_">{{ tag }}</a>
+            {% endfor %}
+        </div>
+
+    
+
+    
+      <!-- create modal element and include the form template inside it -->
+      <div class="modal fade" id="edit-item-modal-{{ item.itemid }}" tabindex="-1" role="dialog"
+        aria-labelledby="edit-item-modal-{{ item.itemid }}-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="edit-item-modal-{{ item.itemid }}-label">Edit Item</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              {% include 'edititem.html' %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">Close</button>
+              <button type="button" id = "delete-item" class="btn btn-danger">Delete Item</button>
+              <button type="submit" form="edit-item-form" class="btn btn-primary">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- create modal element and include the form template inside it -->
+      <div class="modal fade" id="propose-item-modal" tabindex="-1" role="dialog" aria-labelledby="propose-item-modal-label"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="propose-item-modal-label">Edit Item</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              {% include 'propose2.html' %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" form="propose-item-form" id ="send-prop-btn" class="btn btn-primary">Send proposal</button>
+            </div>
+          </div>
+        </div>
+      </div>    
+
+    </div>
+
+  <!-- script to handle the edit item form submission -->
+  <script>
+    document.getElementById("delete-item").onclick = function () { deleteCur() };
+
+    function deleteCur() {
+      var r = confirm("Are you sure you want to delete this item?");
+      var form = $(this);
+      if (r == true) {
+        $.ajax({
+          type: 'POST',
+          url: '{% url "delete_item" item.itemid %}',
+          headers: { 'X-CSRFToken': csrf_token },
+          success: function (response) {
+            window.location = '/';
+          },
+          error: function (xhr, status, error) {
+            // handle error response from server (e.g. display an error message)
+            console.log(error);
+          }
+        });
+      } else {
+        return false;
+      }
+
+    }
+
+
+    $(function () {
+
+
+
+      $('#edit-item-form').submit(function (event) {
+        console.log('event happened')
+
+        //event.preventDefault(); // prevent the default form submission
+        var form = $(this); // reference to the form element
+
+        var titleField = form.find('#item-title'); // reference to the title field element
+        var descriptionField = form.find('#item-description'); // reference to the description field element
+        var titleError = titleField.next('.text-danger'); // reference to the error message element for the title field
+        var descriptionError = descriptionField.next('.text-danger'); // reference to the error message element for the description field
+
+        // Check if the title field is empty and show an error message if necessary
+        if (!titleField.val().trim()) {
+          titleError.removeClass('d-none');
+        } else {
+          titleError.addClass('d-none');
+        }
+
+        // Check if the description field is empty and show an error message if necessary
+        if (!descriptionField.val().trim()) {
+          descriptionError.removeClass('d-none');
+        } else {
+
+          descriptionError.addClass('d-none');
+        }
+
+        // If either field is empty, do not submit the form
+        if (!titleField.val().trim() || !descriptionField.val().trim()) {
+          event.preventDefault();
+          return false;
+        }
+        var url = form.attr('action'); // the URL to submit the form data to
+        var data = form.serialize(); // serialize the form data into a URL-encoded string
+
+
+      });
+    });
+  </script>
+  <!-- script to handle the propose item form submission -->
+  <script>
+    $(function () {
+      console.log("Page loaded!"); // log message to console
+      $('#propose-item-form').submit(function (event) {
+        const propose_button =document.getElementById("send-prop-btn");
+        propose_button.disabled = true;
+
+        console.log('event happened')
+        event.preventDefault(); // prevent the default form submission
+        // pause the code execution
+        var form = $(this); // reference to the form element
+        var url = form.attr('action'); // the URL to submit the form data to
+        var data = form.serialize(); // serialize the form data into a URL-encoded string
+
+        var selectedValue = $('#choose-item').val();
+
+        // Check if the value is empty
+        if (selectedValue == "") {
+          // Display a red error message below the select element
+          $('#choose-item').after('<span style="color:red">This field is required</span>');
+          propose_button.disabled = false;
+          return false; // prevent the form from submitting
+        }
+
+        $.ajax({
+          type: 'POST',
+          url: url,
+          data: data,
+          dataType: 'json',
+          success: function (response) {
+            if (response.success) {
+
+              // Create a custom popup with the success message and buttons
+              var successModalHtml = `
+    <div class="modal" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="successModalLabel">Proposal Sent Successfully</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Your proposal has been submitted successfully.</p>
+          </div>
+          <div class="modal-footer">
+            <a href="/" class="btn btn-primary">Return to Home Page</a>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Return to Current Item</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+              // Add the new modal to the body element
+              $('body').append(successModalHtml);
+              $('#propose-item-modal').modal('hide');
+              $('.modal-backdrop').remove();
+
+              // Show the new modal
+              $('#successModal').modal('show');
+              propose_button.disabled = false;
+
+
+
+            } else {
+              // if the server returns an error response, display the form errors
+              $('.modal-body').html(form); // replace the form with the error messages
+            }
+          },
+          error: function (xhr, status, error) {
+            // handle error response from server (e.g. display an error message)
+            console.log(error);
+          }
+        });
+        //propose_button.disabled = false;
+      });
+    });
+  </script>
+</body>
+
+
+

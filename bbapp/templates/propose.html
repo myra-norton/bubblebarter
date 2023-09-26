@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Barter in the Bubble</title>
+  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
+  {% csrf_token %}
+<script>
+  var csrf_token = '{{ csrf_token }}';
+</script>
+</head>
+
+
+<body>
+    This is the propose item page <br>
+    This is the item you are proposing to: <br>
+    Title: {{to_item.title}}
+    <br>
+    Description: {{to_item.description}}
+    <br>
+    Wants: {{to_item.wants}}
+    <br><hr><br>
+    Choose an item to propose:
+    <select  id="choose_item" onchange="console.log('Selected value:', this.value);">
+        {% for item in owned_items %}
+          <option value="{{ item.itemid }}">{{ item.title }}</option>
+        {% endfor %}
+      </select>
+    <a type="button" class="btn btn-lg btn-default" href="{% url 'inspectitem' %}?itemid={{to_item.itemid }}">Cancel</a>
+    <a id="my_button" type="button" class="btn btn-lg btn-default">Confirm Item</a>
+  </body>
+
+
+
+
+    <meta charset="utf-8">
+    <title>My Page</title>
+    <!-- Include jQuery from a CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  const selectList = document.getElementById('choose_item');
+  $('#my_button').click(function() {
+    const confirmed = confirm('Are you sure you want to propose this item?');
+    if (!confirmed) return;
+    event.preventDefault();
+    const itemid = "{{ to_item.itemid }}";
+    console.log("itemid: ", itemid)
+    var from_item_id =  selectList.options[selectList.selectedIndex].value;
+    console.log("from_item_id: ", from_item_id)
+  $.ajax({
+    type: "POST",
+    headers: {'X-CSRFToken': csrf_token},
+    url: `processproposal/`,
+    data: { param1: itemid,
+        param2: from_item_id },
+    success: function(response) {
+      console.log("POST request successful!", response);
+      var redirect_url = "{% url 'proposalsent' %}?item_id=" + itemid
+      window.location.href = redirect_url;
+    },
+    error: function(error) {
+      console.error("Error making POST request:", error);
+    }
+  });
+});
+
+
+  </script>
+
+
+
+
+</html>

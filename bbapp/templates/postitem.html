@@ -1,0 +1,291 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Barter in the Bubble</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js"
+    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+{%include "header-account.html"%}
+
+<div class="container">
+  <div class="row mt-4 justify-content-center">
+    <div class="col-md-8">
+      <h1>Post Item</h1>
+      <p>Fill in your item details below</p>
+      <form id="postitemform" action="{% url 'itemposted' %}" method="post" enctype="multipart/form-data">
+        {% if not has_email %}
+        <p class="text-danger"><strong>You must add an email in your <a href ="/account"> account page</a> to post an item.</strong></p>
+        {% endif %}
+
+        {% csrf_token %}
+        <div class="form-group mb-3">
+          <label for="title">Title:</label><br>
+          <input type="text" id="title" class="form-control" name="title"><br>
+          <small class="text-danger d-none" id="title-error">This field is required.</small>
+        </div>
+        <div class="form-group mb-3">
+          <label for="description">Description:</label><br>
+          <textarea id="description" class="form-control" name="description"></textarea><br>
+          <small class="text-danger d-none" id="description-error">This field is required.</small>
+        </div>
+        <div class="form-group mb-3">
+          <label for="wants">Wants:</label><br>
+          <textarea id="wants" class="form-control" name="wants"></textarea><br>
+        </div>
+        <div class="form-group mb-3">
+          <label for="myPhoto">Image:</label><br>
+          <input type="file" id="myPhoto" name="myPhoto" accept="image/png, image/gif, image/jpeg">
+        </div>
+        <!-- add tags -->
+
+        <style>
+          .btn.special-button:hover {
+    background-color: transparent; /* or whatever background color you want to use */
+    color: #000; /* or whatever text color you want to use */
+    border-color: #ccc; /* or whatever border color you want to use */
+  }
+  
+        </style>
+        <h2>Choose your categories</h2>
+        {% for category in categories %}
+        {% if forloop.counter0|divisibleby:5 %}
+        <div class="row mb-3">
+          {% endif %}
+          <div class="col-md-2 col-4">
+            <input type="checkbox" name="{{ category }}" class="btn-check special-button" id="btn-check-2-outlined_{{ category}}"
+              autocomplete="off">
+            <label class="btn btn-lg btn-outline-secondary mr-2 mb-4 special-button" for="btn-check-2-outlined_{{ category}}">{{category}}</label><br>
+          </div>
+         
+        
+        {% endfor %}
+
+        <div class="text-center">
+          <button type="submit" id="post-btn" class="btn btn-lg btn-primary mr-2" href="/">Post item</button>
+          <a type="button" class="btn btn-lg btn-secondary" href="/">Cancel</a>
+
+        </div>
+
+
+      </form>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  
+    
+
+    <script>
+      const form = document.querySelector('#postitemform');
+      const titleField = document.querySelector('#title');
+      const descriptionField = document.querySelector('#description');
+      const titleError = document.querySelector('#title-error');
+      const descriptionError = document.querySelector('#description-error');
+      const imageField = document.querySelector('#myPhoto');
+      const post_btn = document.querySelector('#post-btn');
+      var hasEmail = "{{ has_email }}";
+      hasEmail = hasEmail == "True";
+      console.log(hasEmail, '1')
+      console.log(post_btn)
+      console.log(form)
+      form.addEventListener('submit', (event) => {
+        console.log('123452345')
+        post_btn.disabled = true;
+        if (!titleField.value.trim()) {
+          post_btn.disabled = false;
+          event.preventDefault();
+          titleError.classList.remove('d-none');
+        } else {
+          titleError.classList.add('d-none');
+        }
+        if (!descriptionField.value.trim()) {
+          post_btn.disabled = false;
+          event.preventDefault();
+          descriptionError.classList.remove('d-none');
+        } else {
+          descriptionError.classList.add('d-none');
+        }
+        if (!hasEmail) {
+          post_btn.disabled = false;
+          event.preventDefault();
+          //alert("Please add an email address to your account before posting an item.\nClick <a href='/account/'>here</a> to update your account information.");
+          alert("Please add an email address to your account before posting an item.\nYou can do this by going to your account page.");
+
+        }
+        else if (!imageField.value && titleField.value.trim() && descriptionField.value.trim()) {
+          const confirmResult = confirm('Are you sure you want to post this item without a photo? You may recieve fewer proposals.');
+          if (!confirmResult) {
+            post_btn.disabled = false;
+            event.preventDefault();
+          }
+        }
+      });
+    </script>
+  </div>
+</div>
+
+
+   <!-- Start report modal-->
+   <div class="modal fade" id="contactModal" tabindex="-1" role="dialog"
+   aria-labelledby="contactModal-label" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+     <div class="modal-content" style="background-color: moccasin;">
+       <div class="modal-header">
+         <h5 class="modal-title" id="contactModal-label">Contact Us
+         </h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div>
+         <div class="modal-body">
+           <form id="contactForm" method="post"
+             action="{% url 'report' %}" enctype="multipart/form-data">
+ 
+             {% csrf_token %}
+             <input id="reporteduser" name="reporteduser" value="luke" readonly
+               style="display: none;">
+             <input id="reporteditemid" name="reporteditemid" value="General Contact Report" readonly
+               style="display: none;">
+             <label for="reporttext">Please describe your issue or question:</label><br>
+             <textarea class="form-control" id="reporttext" name="reporttext"></textarea><br>
+           </form>
+         </div>
+         <div class="modal-footer">
+           <button type="button" id = "close-contact" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+           <button type="submit" form="contactForm" id = "submitContact"
+             class="btn btn-primary">Submit</button>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+ <script>
+   $(document).ready(function () {
+   // Get the modal and the Contact button
+   const contactModal = document.getElementById("contactModal");
+   console.log(contactModal);
+   const contactButton = document.getElementById("contact-btn");
+   console.log('button');
+   console.log(contactButton);
+ 
+   // When the Contact button is clicked, open the modal
+   contactButton.onclick = function(event) {
+     event.preventDefault();
+     console.log('here');
+     console.log(contactButton);
+     console.log(contactModal);
+     $('#contactModal').addClass('show').modal('show');
+
+     contactModal.style.display = "block";
+   }
+   var closeButton = document.querySelector('#contactModal .close');
+  closeButton.addEventListener('click', function() {
+    $('#contactModal').modal('hide');
+  });
+ 
+   // Get the close button element
+   var closeButton = document.getElementById("close-contact");
+ 
+   // When the close button is clicked, close the modal
+   closeButton.onclick = function() {
+     //contactModal.style.display = "none";
+     //contatcModal.hide();
+     $('#contactModal').modal('hide');
+   }
+ 
+   // When the user clicks anywhere outside of the modal, close it
+   window.onclick = function(event) {
+     if (event.target == contactModal) {
+       contactModal.style.display = "none";
+     }
+   }
+
+   document.getElementById("submitContact").addEventListener("click", function() {
+    event.preventDefault();
+    let formData = new FormData($("#contactForm")[0]);
+    $.ajax({
+    url: "/inspectitem/report/itemreported",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(response) {
+      // Handle the success response
+      console.log("Form submitted successfully:", response);
+      // Close the modal or perform other actions based on the response
+      $("#contactModal").hide();
+
+
+      sentModal = `<div class="modal fade" id="sentModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Message sent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your message has been sent</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          $('body').append(sentModal);
+        //$('#contactModal').modal('hide');
+        $('#sentModal').addClass('show').modal('show');
+        $('#sentModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  location.reload();
+}, 2000);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors
+      console.log("Error submitting the form:", textStatus, errorThrown);
+    },
+  });
+   
+    
+  });});
+ </script>
+ <!-- End report modal-->
+
+
+
+ <script>
+  const searchBar = document.querySelector('#search-bar');
+  searchBar.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      // Do something when enter key is pressed
+      console.log('User pressed enter on the search bar!');
+      $('#search').click();
+    }
+  });
+</script>
+</body>
+
+</html>

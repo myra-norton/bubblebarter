@@ -1,0 +1,8 @@
+{% block content %}
+<h1>Account Status</h1>
+<p>{{ account_status_message }}</p>
+<form method="post" action="">
+    {% csrf_token %}
+    <button type="submit" name="send_email" class="btn btn-primary">Send Email</button>
+</form>
+{% endblock %}

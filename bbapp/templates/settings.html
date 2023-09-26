@@ -1,0 +1,8 @@
+<form id="settings-modal-form" method="post" action="{% url 'settings' %}">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="emailInput">Email address</label>
+    <input type="email" name="email" class="form-control" id="emailInput" placeholder="Enter email" ,
+      value={{user.email}}>
+  </div>
+</form>

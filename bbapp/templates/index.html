@@ -1,0 +1,629 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Barter in the Bubble</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js"
+    integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    function toggleRow() {
+      var row = document.getElementById("filterRow");
+      if (row.style.display === "none") {
+        row.style.display = "flex";
+      } else {
+        row.style.display = "none";
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="site-container" class="container-fluid">
+    {% include 'header_search.html' %}
+    <div id="main" class="container-fluid" style="width:85%;">
+      <div class="row">
+        <!-- filters column (is hidden when screen size < large) -->
+        <div class="col-md-2 d-none d-lg-block">
+          <form>
+            <h4>Filters</h4>
+            <hr>
+            {% for category in categories %}
+            <input type="checkbox" name="category_{{category}}" value="{{category}}" id="{{category}}">
+            <label for="{{category}}">{{category}}</label><br>
+            {% endfor %}
+            <div class="btn-group">
+              <button id="clear-filters-button-main" class="btn btn-outline-secondary">Clear All Filters</button>
+            </div>
+            <br>
+          </form>
+        </div> <!-- close filter column -->
+        <!-- search results column -->
+        <div class="col-lg-10">
+          <div id="current-search" class = "row"><p><strong>Showing Results For:</strong> "{{prev_search}}" <strong>Tags: </strong> {{sel_no_dups}} </p> </div>
+          <div id="search-results" class="row">
+            {% include "searchresults.html" %}
+          </div> <!-- close search results row -->
+        </div> <!-- close search results column -->
+      </div> <!-- close main row -->
+    </div> <!-- close main container -->
+  </div> <!-- close site container -->
+
+  <!-- script for masonry grid layout -->
+  <script>
+    $(window).on('load', function () {
+      var container = document.querySelector('#search-results');
+      var masonry = new Masonry(container, {
+        itemSelector: '.col-sm-6.col-lg-4',
+        columnWidth: '.col-sm-6.col-lg-4',
+        percentPosition: true
+      });
+    });
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+  <!-- script for when search button is pressed -->
+  <script>
+    $(document).ready(function () {
+      $('#search').click(function () {
+        checkboxes.forEach(function (checkbox) {
+          checkbox.disabled = true;
+        });
+        event.preventDefault();
+        console.log("searching")
+        var search_term = $('input[name="q"]').val();
+        var categories = $('input[type=checkbox][name^="category_"]:checked').map(function () {
+          return this.value;
+        }).get().join(",");
+        $.ajax({
+          type: 'GET',
+          url: '{% url "index" %}',
+          data: {
+            'q': search_term,
+            'categories': categories,
+          },
+          success: function (data) {
+            // Replace the search results on the page with the filtered results
+            console.log('success');
+            window.location = '/?q=' + search_term + '&categories=' + categories + '&c=False';
+          },
+          error: function (xhr, status, error) {
+            console.error(error);
+          }
+        });
+      });
+    });
+  </script>
+
+  <!-- script for checking filters -->
+  <script>
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="category_"]');
+    console.log('checkboxes: '+ checkboxes);
+    console.log(checkboxes);
+    const clearFiltersButton = document.getElementById('clear-filters-button');
+    const clearFiltersButtonMain = document.getElementById('clear-filters-button-main');
+
+    // Function to clear all checkboxes
+    function clearCheckboxes() {
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+      checkboxes[0].dispatchEvent(new Event('change'));
+    }
+
+    // Add a click event listener to the button
+    clearFiltersButton.addEventListener('click', () => {
+      event.preventDefault();
+      clearCheckboxes();
+    });
+
+
+    // Function to clear all checkboxes
+    function clearCheckboxesMain() {
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+      checkboxes[13].dispatchEvent(new Event('change'));
+    }
+    clearFiltersButtonMain.addEventListener('click', () => {
+      event.preventDefault();
+      clearCheckboxesMain();
+    });
+
+
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        // Code to execute each time a checkbox is checked/unchecked
+        //var search_term = $('input[name="q"]').val();
+        checkboxes.forEach(function (checkbox2) {
+          checkbox2.disabled = true;
+
+          if (checkbox2.id == checkbox.id) {
+            checkbox2.checked = checkbox.checked;
+          }
+        });
+        var search_term = "{{prev_search}}";
+        var categories = $('input[type=checkbox][name^="category_"]:checked').map(function () {
+          return this.value;
+        }).get()
+        categories = [...new Set(categories)].join(',');
+        $.ajax({
+          type: 'GET',
+          url: '{% url "index" %}',
+          data: {
+            'search_term': search_term,
+            'categories': categories,
+          },
+          success: function (data) {
+            // Replace the search results on the page with the filtered results
+            window.location = '/?q=' + search_term + '&categories=' + categories + '&c=True';
+
+          },
+          error: function (xhr, status, error) {
+            console.error(error);
+          }
+        });
+      });
+    });
+  </script>
+
+  <!-- script for  -->
+  <script>
+    const categories = "{{selected_categories}}".split(","); // Convert comma-separated categories string to array
+    categories.forEach((category) => {
+      $(`input[name="category_${category}"]`).prop('checked', true); // Set the "checked" property of the matching checkbox to true
+    });
+  </script>
+
+  <!-- JavaScript code to disable the checkbox -->
+  <script>
+    // Disable the checkbox when the page is loading
+    checkboxes.forEach(function (checkbox) {
+      checkbox.disabled = false;
+    });
+  </script>
+
+  <!-- script for search bar functionality -->
+  <script>
+    const searchBar = document.querySelector('#search-bar');
+    searchBar.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        // Do something when enter key is pressed
+        $('#search').click();
+      }
+    });
+  </script>
+
+
+<!--Scritpt for required to post an item *******-->
+<script>
+  
+   const proposeModals = document.querySelectorAll('[id^="propose-item-modal-"]');
+   const owned_length = "{{ owned_items | length }}";
+   proposeModals.forEach(modal => {
+     const currentModal = modal;
+     console.log(currentModal);
+     currentModal.on('hidden.bs.modal', function () {
+       const itemId = currentModal.id.split('modal-').pop();
+       if (owned_length == 0){
+        // ****** figure this out
+        console.log('no itemds');
+        $('#choose-item-' + itemId).after('<span style="color:red">You have no active items. Please post a new item.</span>');
+
+
+       }
+     });
+   });
+
+</script>
+
+  <script>
+    const proposeForms = document.querySelectorAll('[id^="propose-item-form-"]');
+    //console.log(proposeForms)
+    proposeForms.forEach(form => {
+      //console.log(form);
+      const currentForm = form;
+      form.addEventListener('submit', event => {
+        event.preventDefault(); // prevent the default form submission
+        //var curForm = form;
+        //console.log(currentForm);
+        const itemId = currentForm.id.split('form-').pop();
+        //console.log(itemId);
+        const propose_button = document.getElementById("send-prop-btn-" + itemId); // this prob is broken
+        propose_button.disabled = true;
+        //console.log(itemId)
+        var csrf_token = $('input[name=csrfmiddlewaretoken]').val();
+        //console.log(typeof csrf_token);
+
+        // pause the code execution
+        //var form = $(this); // reference to the form element
+        var selectedValue = $('#choose-item-' + itemId).val();
+        // Check if the value is empty
+        if (selectedValue == "") {
+          // Display a red error message below the select element
+          $('#choose-item-' + itemId).after('<span style="color:red">This field is required</span>');
+          propose_button.disabled = false;
+          return false; // prevent the form from submitting
+        }
+        var url = currentForm.action; // the URL to submit the form data to
+        var message = $('#proposal-message-' + itemId).val();
+        var data = { 'chosen-item': selectedValue, 'message': message }; // serialize the form data into a URL-encoded string
+
+        $.ajax({
+          type: 'POST',
+          url: url,
+          data: data,
+          dataType: 'json',
+          headers: { 'X-CSRFToken': csrf_token },
+          success: function (response) {
+            if (response.success) {
+
+
+              // Create a custom popup with the success message and buttons
+              var successModalHtml = `
+            <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Proposal Sent Successfully</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your proposal has been submitted successfully. Returning to your search</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+              // Add the new modal to the body element
+              var modal = '#propose-item-modal-' + itemId;
+              $('body').append(successModalHtml);
+              $('#propose-item-modal-' + itemId).modal('hide');
+              propose_button.disabled = false;
+              //$('.modal-backdrop').remove();
+
+              // Show the new modal
+              var successModal = $('#successModal');
+              $('#successModal').addClass('show').modal('show');
+              $('#successModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  console.log('Reloading page...');
+  location.reload();
+}, 2000);
+
+
+
+            }
+
+
+            else {
+              // if the server returns an error response, display the form errors
+              $('.modal-body').html(form); // replace the form with the error messages
+            }
+          },
+          error: function (xhr, status, error) {
+            // handle error response from server (e.g. display an error message)
+            console.log(error);
+          }
+        });
+        //propose_button.disabled = false;
+      });
+    });
+  </script>
+
+
+
+
+  <!-- script to handle the edit item form submission -->
+  <script>
+
+    function deleteCur(itemid) {
+      var r = confirm("Are you sure you want to delete this item?");
+      var csrf_token = '{{ csrf_token }}';
+      if (r == true) {
+        $.ajax({
+          type: 'POST',
+          url: '/inspectitem/' + itemid + '/deleteitem/',
+          headers: { 'X-CSRFToken': csrf_token },
+          success: function (response) {
+            window.location = '/';
+          },
+          error: function (xhr, status, error) {
+            // handle error response from server (e.g. display an error message)
+            console.log(error);
+          }
+        });
+      }
+      else {
+        return false;
+      }
+    }
+
+
+    const editForms = document.querySelectorAll('[id^="edit-item-form-"]');
+    console.log("Page loaded!"); // log message to console
+
+    editForms.forEach(form => {
+      //console.log(form);
+      const currentForm = form;
+      form.addEventListener('submit', event => {
+
+        //event.preventDefault(); // prevent the default form submission
+        //var form = currentForm; // reference to the form element
+        const itemId = currentForm.id.split('form-').pop();
+        var titleField = $('#item-title-' + itemId); // reference to the title field element
+        var descriptionField = $('#item-description-' + itemId); // reference to the description field element
+        var titleError = titleField.next('.text-danger'); // reference to the error message element for the title field
+        var descriptionError = descriptionField.next('.text-danger'); // reference to the error message element for the description field
+
+        // Check if the title field is empty and show an error message if necessary
+        if (!titleField.val().trim()) {
+          titleError.removeClass('d-none');
+        }
+        else {
+          titleError.addClass('d-none');
+        }
+
+        // Check if the description field is empty and show an error message if necessary
+        if (!descriptionField.val().trim()) {
+          descriptionError.removeClass('d-none');
+        }
+        else {
+          descriptionError.addClass('d-none');
+        }
+
+        // If either field is empty, do not submit the form
+        if (!titleField.val().trim() || !descriptionField.val().trim()) {
+          event.preventDefault();
+          return false;
+        }
+        var url = form.attr('action'); // the URL to submit the form data to
+        var data = form.serialize(); // serialize the form data into a URL-encoded string
+      });
+    });
+  </script>
+
+
+  <!-- script to handle the report button modal -->
+  <script>
+    const reportForms = document.querySelectorAll('[id^="report-item-form-"]');
+
+
+    reportForms.forEach(form => {
+      //console.log(form);
+      const currentForm = form;
+
+      let csrfToken = $('[name="csrfmiddlewaretoken"]').val();
+      form.addEventListener('submit', event => {event.preventDefault();
+        const itemId = currentForm.id.split('form-').pop();
+        let formData = new FormData($("#report-item-form-"+itemId)[0]);
+
+
+        $.ajax({
+    url: "/inspectitem/report/itemreported",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    beforeSend: function(xhr) {
+      // Set the X-CSRFToken header
+      xhr.setRequestHeader("X-CSRFToken", csrfToken);
+    },
+    success: function(response) {
+      // Handle the success response
+      console.log("Form submitted successfully:", response);
+      // Close the modal or perform other actions based on the response
+      //$("#contactModal").hide();
+
+
+      sentModal = `<div class="modal fade" id="sentModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Message sent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your report has been sent. Reloading page.</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          $('body').append(sentModal);
+        $('#report-item-modal-'+itemId).modal('hide');
+        $('#sentModal').addClass('show').modal('show');
+        console.log('here')
+        $('#sentModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  console.log('Reloading page...');
+  location.reload();
+}, 2000);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors
+      console.log("Error submitting the form:", textStatus, errorThrown);
+    },
+  });
+
+
+        // event.preventDefault(); // prevent the default form submission
+        //var form = currentForm; // reference to the form element
+        
+
+        // var url = form.attr('report'); // the URL to submit the form data to
+        // var data = form.serialize(); // serialize the form data into a URL-encoded string\
+
+
+
+      });
+    });
+  </script>
+  </script>
+
+
+
+
+
+   <!-- Start report modal-->
+   <div class="modal fade" id="contactModal" tabindex="-1" role="dialog"
+   aria-labelledby="contactModal-label" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+     <div class="modal-content" style="background-color: moccasin;">
+       <div class="modal-header">
+         <h5 class="modal-title" id="contactModal-label">Contact Us
+         </h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div>
+         <div class="modal-body">
+           <form id="contactForm" method="post"
+             action="{% url 'report' %}" enctype="multipart/form-data">
+ 
+             {% csrf_token %}
+             <input id="reporteduser" name="reporteduser" value="luke" readonly
+               style="display: none;">
+             <input id="reporteditemid" name="reporteditemid" value="General Contact Report" readonly
+               style="display: none;">
+             <label for="reporttext">Please describe your issue or question:</label><br>
+             <textarea class="form-control" id="reporttext" name="reporttext"></textarea><br>
+           </form>
+         </div>
+         <div class="modal-footer">
+           <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+           <button type="submit" form="contactForm" id = "submitContact"
+             class="btn btn-primary">Submit</button>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+ <script>
+   $(document).ready(function () {
+   // Get the modal and the Contact button
+   const contactModal = document.getElementById("contactModal");
+   console.log(contactModal);
+   const contactButton = document.getElementById("contact-btn");
+   console.log('button');
+   console.log(contactButton);
+ 
+   // When the Contact button is clicked, open the modal
+   contactButton.onclick = function(event) {
+     event.preventDefault();
+     console.log('here');
+     console.log(contactButton);
+     console.log(contactModal);
+     $('#contactModal').addClass('show').modal('show');
+
+     contactModal.style.display = "block";
+   }
+ 
+   // Get the close button element
+   var closeButton = document.getElementsByClassName("close")[0];
+ 
+   // When the close button is clicked, close the modal
+   closeButton.onclick = function() {
+     contactModal.style.display = "none";
+   }
+ 
+   // When the user clicks anywhere outside of the modal, close it
+   window.onclick = function(event) {
+     if (event.target == contactModal) {
+       contactModal.style.display = "none";
+     }
+   }
+
+   document.getElementById("submitContact").addEventListener("click", function() {
+    event.preventDefault();
+    let formData = new FormData($("#contactForm")[0]);
+    $.ajax({
+    url: "/inspectitem/report/itemreported",
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(response) {
+      // Handle the success response
+      console.log("Form submitted successfully:", response);
+      // Close the modal or perform other actions based on the response
+      $("#contactModal").hide();
+
+
+      sentModal = `<div class="modal fade" id="sentModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Message sent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Your message has been sent</p>
+                  </div>
+                  <div class="modal-footer">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          $('body').append(sentModal);
+        //$('#contactModal').modal('hide');
+        $('#sentModal').addClass('show').modal('show');
+        $('#sentModal').on('hidden.bs.modal', function (e) {
+                $('.modal-backdrop').remove();
+              });
+              setTimeout(function() {
+  location.reload();
+}, 2000);
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      // Handle errors
+      console.log("Error submitting the form:", textStatus, errorThrown);
+    },
+  });
+   
+    
+  });});
+ </script>
+ <!-- End report modal-->
+
+
+ <!-- script to handle the report button modal -->
+ 
+
+</body>
+
+</html>

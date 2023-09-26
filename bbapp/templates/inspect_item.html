@@ -1,0 +1,147 @@
+<div class="modal fade" id="cardModal{{ result.itemid }}" tabindex="-1" role="dialog"
+  aria-labelledby="cardModalLabel{{ result.itemid }}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: moccasin;">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="background-color: moccasin;">
+        {% if not result.isactive %}
+          <h4 class="card-text text-muted"><strong>This item is no longer active.</strong></h4>
+          {% endif %}
+        {% if result.image_url %}
+        <img src="{{result.image_url}}" class="img-fluid"><br><br>
+        {% endif %}
+        <h3 class="word-wrap" style="text-align: center;">{{result.title}}</h3>
+        <hr style="border-top: 3px solid black; width: 50%;">
+        <h5>Description: <span class="word-wrap" style="font-weight:normal; font-size: 0.8em;">{{result.description}}</span></h5>
+        <h5>Wants: <span class="word-wrap" style="font-weight:normal; font-size: 0.8em;">{{result.wants}}</span></h5>
+        <p><b>Posted</b> {{result.dateposted}}<br><b>Expires</b> {{result.dateexpires}}</p>
+        <h5 style="display:inline">Tags: </h5>&nbsp;
+        {% for tag in result.get_active_tags %}
+        <a class="rounded-pill" style="border: 1px solid black;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            display: inline;">{{ tag }}</a>
+        {% endfor %}
+      </div>
+      <div class="modal-footer" style="background-color: moccasin;">
+        <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+        {% if user.username == result.owner and result.isactive %}
+        <!-- create edit item button -->
+        <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal"
+          data-target="#edit-item-modal-{{ result.itemid }}">Edit Item</button>
+
+          <!-- Script to reset values of edit modal-->
+<script>
+    $(function() {
+      // Get the edit item modal for this item
+      var modal = $('#edit-item-modal-{{ result.itemid }}');
+      // Get the edit item modal for this item
+    
+      $('input[type="checkbox"][name^="edit-"]').each(function() {
+    $(this).data('initial-checked', this.checked);
+  });
+
+      
+   
+      modal.on('hidden.bs.modal', function () {
+        console.log('modal closed');
+      // Reset the description and wants fields
+      var titleField = modal.find('[id^="item-title"]');
+      var descriptionField = modal.find('[id^="item-description-"]');
+      var wantsField = modal.find('[id^="item-wants"]');
+      titleField.val('{{ result.title }}');
+    descriptionField.val('{{ result.description }}');
+        wantsField.val('{{ result.wants }}');
+        
+      
+      // Reset the photo field and preview image
+      var photoInput = modal.find('[id^="myPhoto-"]');
+      photoInput.val(null);
+      var removeButton = modal.find('[id^="remove-button-"]');
+        removeButton.hide();
+
+        // Reset the tags
+        $('input[type="checkbox"][name^="edit-"]').each(function() {
+      this.checked = $(this).data('initial-checked');
+    });
+        
+        
+    });
+    
+  });
+    
+    </script>
+
+
+
+ <!-- Script to add remove image button -->
+ <script>
+  function removeImage(inputId, buttonId) {
+    // get the input element and reset its value
+    console.log(inputId);
+    console.log(buttonId);
+    var input = document.getElementById(inputId);
+input.value = null; // clear the files using the FileList object
+input.type = "text"; // change the input type to text
+input.type = "file"; // change the input type back to file
+    // hide the image and the remove button
+    document.getElementById(buttonId).style.display = "none";
+  }
+
+  // show the uploaded image and the remove button
+  $(function() {
+  elem = document.getElementById("myPhoto-{{result.itemid}}");
+  console.log('element: ');
+  console.log(elem);
+  document.getElementById("myPhoto-{{result.itemid}}").addEventListener("change", function(event) {
+      console.log('photo changed')
+    // get the item ID from the input field's ID
+    var itemId = event.target.id.split("myPhoto-")[1];
+
+    var previewId = "myPhoto-" + itemId + "-preview";
+    var buttonId = "remove-button-" + itemId;
+    console.log(buttonId)
+
+    document.getElementById(buttonId).style.display = "inline-block";
+  });
+});
+</script>
+
+
+        {% elif result.isactive %}
+        <!-- create proposal button -->
+        <button type="button" class="btn btn-danger" data-dismiss="modal" data-toggle="modal"
+          data-target="#report-item-modal-{{result.itemid}}">Report Item</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal"
+          data-target="#propose-item-modal-{{result.itemid}}">Make a
+          Proposal</button>
+
+          <script>
+    $(function() {
+      var modal2 = $('#propose-item-modal-{{ result.itemid }}');
+
+    
+
+    modal2.on('hidden.bs.modal', function () {
+      console.log('modal closed');
+    // Reset the description and wants fields
+    var messageField= modal2.find('[id^="proposal-message"]');
+    console.log(messageField);
+    var chooseField = modal2.find('[id^="choose-item-"]');
+  messageField.val("");
+     chooseField.val("");
+      
+  
+    });});
+          </script>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

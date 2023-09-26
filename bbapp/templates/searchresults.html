@@ -1,0 +1,148 @@
+<!-- create a card for each result -->
+{% if search_results %}
+{% for result in search_results %}
+<div class="col-sm-6 col-lg-4">
+    <div class="card mb-4 shadow" id="indexcard" data-toggle="modal" data-target="#cardModal{{ result.itemid }}"
+        style="border-radius: 10px; cursor: pointer; background-color: moccasin;">
+        {% if result.image_url %}
+        <img class="card-img-top" src="{{result.image_url}}" alt="Card image cap" style="margin-top:10px;">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b>{{result.title}}</b></h4>
+            <hr>
+            <p class="card-text">
+                <b>description: </b>{{result.description}}<br>
+                <b>wants: </b>{{result.wants}}<br>
+            </p>
+        </div>
+        {% else %}
+        <div class="card-body">
+            <h3 class="card-title text-center"><b>{{result.title}}</b></h3>
+            <hr>
+            <p class="card-text">
+                <b>description: </b>{{result.description}}<br>
+                <b>wants: </b>{{result.wants}}<br>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- this is the inspect item modal for each result -->
+{% include 'inspect_item.html' %}
+
+<!-- this is the edit item modal for results belonging to the user -->
+<div class="modal fade" id="edit-item-modal-{{ result.itemid }}" tabindex="-1" role="dialog"
+    aria-labelledby="edit-item-modal-{{ result.itemid }}-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: moccasin;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-item-modal-{{ result.itemid }}-label">Edit Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-item-form-{{result.itemid}}" method="post" action="{% url 'edit_item' result.itemid %}"
+                    enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group mb-3">
+                        <label for="item-title-{{result.itemid}}" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="item-title-{{result.itemid}}" name="name"
+                            value="{{ result.title }}">
+                        <small class="text-danger d-none" id="title-error">This field is required.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description-{{result.itemid}}" class="form-label">Description</label>
+                        <textarea class="form-control" id="item-description-{{result.itemid}}"
+                            name="description">{{ result.description }}</textarea>
+                        <small class="text-danger d-none" id="description-error">This field is required.</small>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="item-wants">Wants</label>
+                        <textarea class="form-control" id="item-wants" name="wants">{{ result.wants }}</textarea>
+                        <small class="text-danger d-none" id="description-error">This field is required.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-description-{{result.itemid}}">Change Image</label>
+                        <input type="file" id="myPhoto-{{result.itemid}}" name="myPhoto" accept="image/png, image/gif, image/jpeg">
+                    </div>
+                    <div class="form-group">
+                        <a type="button" id="remove-button-{{result.itemid}}" onclick="removeImage('myPhoto-{{result.itemid}}', 'remove-button-{{result.itemid}}')" 
+                        class="btn btn-link" style="display: none;">Remove New Image</a>
+                      </div>
+                    <div class="form-group">
+                        <label for="item-categories">Categories</label><br>
+                        <div class="row">
+                            {% for category in categories %}
+                            <div class="col-4">
+                                {% if category in result.get_active_tags %}
+                                <input type="checkbox" name="edit-{{ category }}" checked autocomplete="off">
+                                <label>{{category}}</label><br>
+                                {% else %}
+                                <input type="checkbox" name="edit-{{ category }}" autocomplete="off">
+                                <label>{{category}}</label><br>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+                <button type="button" id="delete-item" class="btn btn-danger"
+                    onclick="deleteCur('{{result.itemid}}')">Delete Item</button>
+                <button type="submit" form="edit-item-form-{{result.itemid}}" class="btn btn-primary">Save
+                    changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- this is the report item modal -->
+<div class="modal fade" id="report-item-modal-{{ result.itemid }}" tabindex="-1" role="dialog"
+    aria-labelledby="report-item-modal-{{ result.itemid }}-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: moccasin;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="report-item-modal-{{ result.itemid }}-label">Report Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div>
+                <div class="modal-body">
+                    <form id="report-item-form-{{result.itemid}}" method="post"
+                        action="{% url 'report' result.itemid %}" enctype="multipart/form-data">
+
+                        {% csrf_token %}
+                        <label for="reporteditemid" style="display: none;"><strong>{{result.title}}</strong></label>
+                        <input id="reporteduser" name="reporteduser" value="{{result.owner}}" readonly
+                            style="display: none;">
+                        <input id="reporteditemid" name="reporteditemid" value="{{result.itemid}}" readonly
+                            style="display: none;">
+                        <!-- <label for="reportedproposalid">Optional proposal id</label>
+                        <input type="text" id="reportedproposalid" name="reportedproposalid"
+                            value="{{reportedproposalid}}"><br> -->
+                        <label for="reporttext">Please describe your report:</label><br>
+                        <textarea class="form-control" id="reporttext" name="reporttext"></textarea><br>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary mr-auto" data-dismiss="modal">Close</button>
+                    <button type="submit" form="report-item-form-{{result.itemid}}"
+                        class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- this is the modal for proposing an item -->
+{% include 'propose_item.html' %}
+
+{% endfor %}
+<!-- this is what is returned if there are no results -->
+{% else %}
+<div class="col-md-12">No results found.</div>
+{% endif %}
